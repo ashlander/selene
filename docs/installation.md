@@ -75,6 +75,6 @@ Unfortunately conan package is not available any more. But you can build all loc
     mkdir release && cd release
     conan install -s build_type=Release --build=missing ../.
     conan build ../.
-    conan export-pkg ../.
+    conan export-pkg ../. selene/testing
 
 You can build debug package by changing `build_type=Release` to `build_type=Debug`.
