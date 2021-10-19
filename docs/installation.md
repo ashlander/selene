@@ -67,3 +67,14 @@ Alternatively, just specify `selene/0.3.1@selene/testing` in a project's `conanf
 
 Please refer to the [Conan documentation](http://docs.conan.io/) on how to make use of the installed package. 
 See also the Bintray website for Selene: https://bintray.com/kmhofmann/conan-repo/selene%3Aselene.
+
+### Using Local Conan
+
+Unfortunately conan package is not available any more. But you can build all locally and use conan package.
+
+    mkdir release && cd release
+    conan install -s build_type=Release --build=missing ../.
+    conan build ../.
+    conan export-pkg ../.
+
+You can build debug package by changing `build_type=Release` to `build_type=Debug`.
