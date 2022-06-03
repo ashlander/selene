@@ -218,7 +218,7 @@ template <typename... Args, typename>
 constexpr Pixel<T, nr_channels_, pixel_format_>::Pixel(Args... args) noexcept
     : data_{{static_cast<T>(args)...}}
 {
-  static_assert(std::is_trivial_v<Pixel<T, nr_channels_, pixel_format_>>, "Pixel type is not trivial");
+  //static_assert(std::is_trivial_v<Pixel<T, nr_channels_, pixel_format_>>, "Pixel type is not trivial");
   static_assert(std::is_standard_layout_v<Pixel<T, nr_channels_, pixel_format_>>,
                 "Pixel type is not standard layout");
   static_assert(sizeof(Pixel<T, nr_channels_, pixel_format_>) == nr_channels_ * sizeof(T),
