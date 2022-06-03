@@ -1,6 +1,20 @@
 cmake_minimum_required(VERSION 3.12)
 project(selene VERSION 0.3.1 LANGUAGES CXX C)
 
+# with conan
+if (WITH_CONAN)
+    message(STATUS "CONAN BUILD enabled")
+else()
+    message(STATUS "CONAN BUILD disabled")
+endif()
+
+if (WITH_CONAN)
+    include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+    conan_basic_setup()
+else()
+endif()
+
+
 # User-settable options
 option(SELENE_BUILD_TESTS "Build Selene tests" OFF)
 option(SELENE_BUILD_EXAMPLES "Build Selene examples" OFF)

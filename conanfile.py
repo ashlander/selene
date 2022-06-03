@@ -14,9 +14,9 @@ class SeleneConan(ConanFile):
     generators = "cmake"
     build_policy = "missing"
 
-    requires = ("libjpeg-turbo/[>=1.5.0]@bincrafters/stable",
-                "libpng/[>=1.2.0]@bincrafters/stable",
-                "libtiff/[>=4.0.9]@bincrafters/stable")
+    requires = ("libjpeg-turbo/[>=1.5.0]",
+                "libpng/[>=1.2.0]",
+                "libtiff/4.3.0@bsw/stable")
 
     exports_sources = ("../../selene*",
                        "../../cmake*",
@@ -26,6 +26,8 @@ class SeleneConan(ConanFile):
 
     def build(self):
         cmake = CMake(self)
+        cmake.definitions["WITH_CONAN"] = "ON"
+        cmake.definitions['CMAKE_POSITION_INDEPENDENT_CODE'] = "True"
         cmake.configure(source_folder="")
         cmake.build()
         cmake.install()
