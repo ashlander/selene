@@ -123,9 +123,9 @@ public:
   void clear();
 
 private:
-  static_assert(std::is_trivial_v<PixelType>, "Pixel type is not trivial");
-  static_assert(std::is_trivially_copyable_v<PixelType>, "Pixel type is not trivially copyable");
   static_assert(std::is_trivially_default_constructible_v<PixelType>, "Pixel type is not trivially constructable");
+  static_assert(std::is_trivially_copyable_v<PixelType>, "Pixel type is not trivially copyable");
+  static_assert(std::is_trivial_v<PixelType>, "Pixel type is not trivial");
   static_assert(std::is_standard_layout_v<PixelType>, "Pixel type is not standard layout");
 
   DataPtr<modifiability_> ptr_;
