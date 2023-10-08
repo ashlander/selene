@@ -8,12 +8,8 @@ else()
     message(STATUS "CONAN BUILD disabled")
 endif()
 
-if (WITH_CONAN)
-    include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-    conan_basic_setup()
-else()
-endif()
-
+# Disable deprecated features to ensure clean build
+add_definitions(-DTIFF_DISABLE_DEPRECATED)
 
 # User-settable options
 option(SELENE_BUILD_TESTS "Build Selene tests" OFF)

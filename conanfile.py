@@ -1,5 +1,9 @@
-from conans import ConanFile, CMake
-
+from os.path import join
+from os import sep
+from conan import ConanFile
+from conan.tools.cmake import CMake, CMakeToolchain, CMakeDeps
+from conan.tools.files import copy, rm, replace_in_file
+from conan.tools.scm import Git
 
 class SeleneConan(ConanFile):
     name = "selene"
@@ -10,33 +14,91 @@ class SeleneConan(ConanFile):
 
     settings = "os", "compiler", "build_type", "arch"
     options = {"shared": [True, False]}
-    default_options = "shared=False"
-    generators = "cmake"
-    build_policy = "missing"
+    default_options = {"shared":False}
 
-    requires = ("libjpeg-turbo/[>=1.5.0]",
-                "libpng/[>=1.2.0]",
-                "libtiff/4.3.0@bsw/stable")
+    def requirements(self):
+        self.requires("libjpeg-turbo/[>=1.5.0]")
+        self.requires("libpng/[>=1.2.0]")
+        self.requires("libtiff/4.5.1@bsw/stable")
 
-    exports_sources = ("../../selene*",
-                       "../../cmake*",
-                       "../../CMakeLists.txt",
-                       "../../conanfile.txt",
-                       "../../LICENSE")
+    def generate(self):
+        #apply patch
+        self.patch()
+
+        tc = CMakeToolchain(self)
+        tc.cache_variables["WITH_CONAN"] = "ON"
+        tc.cache_variables["CMAKE_POSITION_INDEPENDENT_CODE"] = "True"
+        tc.generate()
+
+        deps = CMakeDeps(self)
+        deps.generate()
 
     def build(self):
         cmake = CMake(self)
-        cmake.definitions["WITH_CONAN"] = "ON"
-        cmake.definitions['CMAKE_POSITION_INDEPENDENT_CODE'] = "True"
-        cmake.configure(source_folder="")
+        cmake.configure()
         cmake.build()
         cmake.install()
 
+    def patch_file(self, path):
+        replace_in_file(self, path, "uint32* ", "uint32_t* ", strict=False)
+        replace_in_file(self, path, "uint32& ", "uint32_t& ", strict=False)
+        replace_in_file(self, path, "uint32 ", "uint32_t ", strict=False)
+        replace_in_file(self, path, "<uint32>", "<uint32_t>", strict=False)
+        replace_in_file(self, path, "<uint32*>", "<uint32_t*>", strict=False)
+        replace_in_file(self, path, "uint32{", "uint32_t{", strict=False)
+        replace_in_file(self, path, "uint32(", "uint32_t(", strict=False)
+        replace_in_file(self, path, "int32& ", "int32_t& ", strict=False)
+        replace_in_file(self, path, "int32 ", "int32_t ", strict=False)
+        replace_in_file(self, path, "<int32>", "<int32_t>", strict=False)
+        replace_in_file(self, path, "int32{", "int32_t{", strict=False)
+        replace_in_file(self, path, "int32)", "int32_t)", strict=False)
+        replace_in_file(self, path, "uint16& ", "uint16_t& ", strict=False)
+        replace_in_file(self, path, "uint16 ", "uint16_t ", strict=False)
+        replace_in_file(self, path, "<uint16>", "<uint16_t>", strict=False)
+        replace_in_file(self, path, "<uint16,", "<uint16_t,", strict=False)
+        replace_in_file(self, path, "uint16{", "uint16_t{", strict=False)
+        replace_in_file(self, path, "uint16)", "uint16_t)", strict=False)
+        replace_in_file(self, path, "int16& ", "int16_t& ", strict=False)
+        replace_in_file(self, path, "int16 ", "int16_t ", strict=False)
+        replace_in_file(self, path, "<int16>", "<int16_t>", strict=False)
+        replace_in_file(self, path, "int16{", "int16_t{", strict=False)
+        replace_in_file(self, path, "int16)", "int16_t)", strict=False)
+
+    def patch(self):
+        # apply patch
+        path = join(self.source_folder, "selene", "img_io", "tiff", "_impl", "TIFFDetail.hpp")
+        self.patch_file(path)
+
+        path = join(self.source_folder, "selene", "img_io", "tiff", "_impl", "TIFFDetail.cpp")
+        self.patch_file(path)
+
+        path = join(self.source_folder, "selene", "img_io", "tiff", "_impl", "TIFFReadTiles.cpp")
+        self.patch_file(path)
+
+        path = join(self.source_folder, "selene", "img_io", "tiff", "_impl", "TIFFReadHighLevel.cpp")
+        self.patch_file(path)
+
+        path = join(self.source_folder, "selene", "img_io", "tiff", "_impl", "TIFFReadStrips.cpp")
+        self.patch_file(path)
+
+        path = join(self.source_folder, "selene", "img_io", "tiff", "Read.cpp")
+        self.patch_file(path)
+
+        path = join(self.source_folder, "selene", "img_io", "tiff", "Write.cpp")
+        self.patch_file(path)
+
+    def source(self):
+        rm(self, "*", self.source_folder, recursive=True) # remove leftovers
+        git = Git(self)
+        git.clone(url="https://github.com/ashlander/selene.git", target=self.source_folder)
+        git.folder = self.source_folder 
+        git.checkout("clang14")
+
     def package(self):
-        self.copy("license*", dst="licenses",  ignore_case=True, keep_path=False)
-        self.copy("*.so", dst="lib", src="package/lib", keep_path=False)
-        self.copy("*.a", dst="lib", src="package/lib", keep_path=False)
-        self.copy("*.hpp", dst="include", src="package/include", keep_path=True)
+        copy(self, "license*", self.source_folder, join(self.package_folder, "licenses"),  ignore_case=True, keep_path=False)
+        copy(self, "*.so", self.source_folder, join(self.package_folder, "lib"), keep_path=False)
+        copy(self, "*.a", self.source_folder, join(self.package_folder, "lib"), keep_path=False)
+        copy(self, "*.hpp", self.source_folder, join(self.package_folder, "include"), keep_path=True)
 
     def package_info(self):
         self.cpp_info.libs = ["selene_base",
@@ -46,5 +108,4 @@ class SeleneConan(ConanFile):
                               "selene_img_io_jpeg",
                               "selene_img_io_png",
                               "selene_img_io_tiff",
-                              "selene_img_ops",
-                              "selene"]
+                              "selene_img_ops"]
